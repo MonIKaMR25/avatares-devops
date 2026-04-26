@@ -1,59 +1,131 @@
-### Backend de API (Python 3.10 - Flask):
+# Guía de Componentes
 
-#### Prerrequisitos:
-- Tener Python 3.10 instalado en tu sistema.
-- Instalar Flask y las dependencias necesarias. Puedes hacerlo ejecutando el siguiente comando en tu terminal:
-  ```
-   pip install -r requirements.txt
-  ```
+Instrucciones detalladas para ejecutar cada componente del proyecto de forma local (sin Docker).
 
-#### Pasos para probar localmente:
-1. **Configuración de Variables de Entorno:**
-   - Define las variables de entorno necesarias (`FLASK_APP` y `FLASK_ENV`). Puedes hacerlo ejecutando los siguientes comandos en tu terminal:
-     ```
-     export FLASK_APP=app.py
-     export FLASK_ENV=development
-     ```
-   
-2. **Ejecutar el Servidor Flask:**
-   - Ejecuta el siguiente comando en tu terminal para iniciar el servidor Flask:
-     ```
-     flask run
-     ```
+---
 
-3. **Acceder a la API:**
-   - Una vez que el servidor esté en funcionamiento, puedes acceder a la API a través de los endpoints definidos en el archivo `app.py`. Por ejemplo, si estás ejecutando el servidor localmente en tu máquina, puedes acceder a la API en la URL `http://localhost:5000`.
+## Backend de API (Python 3.12 — Flask)
 
-4. **Metodos**
-    - /api/avatar
-    - /api/avatar/spec
-    - /ready
+### Prerrequisitos
 
-![](./docs/1.png)
+- Python 3.12+ instalado
+- pip o pip3
 
-### Frontend SPA (Node.js 18 - React + Vite):
+### Instalación
 
-#### Prerrequisitos:
-- Tener Node.js 18 instalado en tu sistema.
-- Instalar las dependencias del proyecto. Puedes hacerlo ejecutando el siguiente comando en el directorio raíz del proyecto frontend:
-  ```
-  npm install
-  ```
+```bash
+cd api
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-#### Pasos para probar localmente:
-1. **Configuración de Variables de Entorno:**
-   - Define las variables de entorno necesarias (`VITE_HOST` y `VITE_PORT`). Puedes hacerlo creando un archivo `.env` en el directorio raíz del proyecto frontend y agregando las siguientes líneas:
-     ```
-     VITE_HOST=0.0.0.0
-     VITE_PORT=5173
-     ```
-   
-2. **Ejecutar el Servidor de Desarrollo:**
-   - Ejecuta el siguiente comando en tu terminal para iniciar el servidor de desarrollo de Vite:
-     ```
-     npm run dev
-     ```
+### Instalar partes custom (solo la primera vez)
 
-3. **Acceder a la Aplicación Frontend:**
-   - Una vez que el servidor esté en funcionamiento, puedes acceder a la aplicación frontend a través de tu navegador web. Por defecto, la aplicación estará disponible en la URL `http://localhost:5173`.
+La aplicación usa SVGs personalizados para las camisetas del avatar. Deben instalarse en la librería `python-avatars`:
 
+```bash
+python install_parts.py
+```
+
+### Variables de entorno
+
+| Variable | Descripción | Valor por defecto |
+|----------|-------------|-------------------|
+| `FLASK_APP` | Archivo principal de Flask | `app.py` |
+| `DB_PATH` | Ruta a la base de datos SQLite | `/data/avatars.db` |
+
+```bash
+export FLASK_APP=app.py
+export DB_PATH=./avatars.db
+```
+
+### Ejecutar
+
+```bash
+flask run
+```
+
+El servidor estará disponible en **http://localhost:5000**.
+
+### Endpoints
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/avatar` | Renderizar avatar SVG (acepta query params) |
+| `GET` | `/api/avatar/spec` | Opciones de personalización disponibles |
+| `GET` | `/api/gallery` | Listar avatares guardados |
+| `POST` | `/api/gallery` | Guardar avatar (`{name, params}`) |
+| `DELETE` | `/api/gallery/:id` | Eliminar avatar |
+| `GET` | `/health` | Estado del servicio + uptime |
+| `GET` | `/ready` | Readiness check (204) |
+| `GET` | `/metrics` | Métricas formato Prometheus |
+
+### Tests
+
+```bash
+pip install -r requirements-test.txt
+python -m pytest tests/ -v
+```
+
+---
+
+## Frontend SPA (Node.js 22 — React + Vite)
+
+### Prerrequisitos
+
+- Node.js 22+ instalado
+- npm
+
+### Instalación
+
+```bash
+cd web
+npm install
+```
+
+### Variables de entorno (opcionales)
+
+| Variable | Descripción | Valor por defecto |
+|----------|-------------|-------------------|
+| `VITE_HOST` | Host del servidor de desarrollo | `0.0.0.0` |
+| `VITE_PORT` | Puerto del servidor de desarrollo | `5173` |
+| `VITE_API_URL` | URL del backend para el proxy | `http://localhost:5000` |
+
+### Ejecutar
+
+```bash
+npm run dev
+```
+
+La aplicación estará disponible en **http://localhost:5173**.
+
+> El servidor de desarrollo de Vite tiene un proxy configurado que redirige automáticamente las peticiones `/api/*` al backend. Ambos servicios deben estar corriendo simultáneamente.
+
+### Tests
+
+```bash
+npm test
+```
+
+### Build de producción
+
+```bash
+npm run build    # Genera archivos estáticos en dist/
+npm run preview  # Previsualizar el build
+```
+
+---
+
+## Con Docker (recomendado)
+
+La forma más sencilla de correr todo el proyecto es con Docker Compose:
+
+```bash
+make up          # Levantar la aplicación → http://localhost:8080
+make test-api    # Verificar que todo funciona
+make logs        # Ver logs en tiempo real
+make down        # Detener
+```
+
+Ver el [README.md](./README.md) para la documentación completa.

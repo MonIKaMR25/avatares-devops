@@ -1,0 +1,43 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: avatars-api
+    restart: unless-stopped
+    expose:
+      - "5000"
+    environment:
+      - FLASK_ENV=production
+      - DB_PATH=/data/avatars.db
+    volumes:
+      - api-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - avatars-net
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: avatars-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - avatars-net
+
+volumes:
+  api-data:
+
+networks:
+  avatars-net:
+    driver: bridge

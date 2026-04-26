@@ -1,0 +1,26 @@
+# Load testing con k6
+#   docker compose -f docker-compose.k6.yml run --rm k6-quick
+#   docker compose -f docker-compose.k6.yml run --rm k6-full
+
+services:
+  k6-quick:
+    image: grafana/k6:0.57.0
+    volumes:
+      - ./loadtest:/scripts:ro
+      - ./loadtest/reports:/reports
+    environment:
+      - BASE_URL=http://host.docker.internal:8080
+    command: run /scripts/quick.js
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  k6-full:
+    image: grafana/k6:0.57.0
+    volumes:
+      - ./loadtest:/scripts:ro
+      - ./loadtest/reports:/reports
+    environment:
+      - BASE_URL=http://host.docker.internal:8080
+    command: run /scripts/script.js
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
